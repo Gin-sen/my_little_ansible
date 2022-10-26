@@ -1,0 +1,7 @@
+/build/
+/dist/
+/my_little_ansible.egg-info/
+/venv/
+/.idea/
+/src/my_little_ansible.egg-info/
+/.vagrant/

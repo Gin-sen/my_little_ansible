@@ -1,0 +1,33 @@
+#Installer le paquet apt nginx-common
+
+- module: apt
+  params:
+    name: nginx-common
+    state: present
+
+#Copier le dossier ./public sur les hôtes distants
+
+- module: copy
+  params:
+    src: ./public
+    dest: /var/www/public
+    backup: true
+
+#Templatiser la définition d'un server nginx (vhost)
+
+- module: template
+  params:
+    src: default.conf.j2
+    dest: /etc/nginx/sites-enabled/default
+
+#Démarrer le service nginx et configurer le service pour qu'il se lance au boot
+
+- module: service
+  params:
+    name: nginx
+    state: started
+
+- module: service
+  params:
+    name: nginx
+    state: enabled

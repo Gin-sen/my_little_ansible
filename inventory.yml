@@ -1,0 +1,7 @@
+hosts:
+    webserver:
+        ssh_address: 10.0.100.101
+        ssh_port: 22
+    bastion:
+        ssh_address: 10.0.100.102
+        ssh_port: 22
