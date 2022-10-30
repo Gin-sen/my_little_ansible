@@ -4,13 +4,14 @@ import paramiko
 class MLAClient(paramiko.SSHClient):
     ssh_mode: str = ""
 
-    def __init__(self, ip: str, port: int, username: str, password: str, pkey_path: str = None):
+    def __init__(self, ip: str, port: int, username: str, password: str, pkey_path: str = None, hostname: str = None):
         super().__init__()
         self.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ip = ip
         self.port = port
         self.username = username
         self.password = password
+        self.hostname = hostname
         self.pkey = paramiko.RSAKey.from_private_key_file(pkey_path) if pkey_path is not None else None
 
     def __repr__(self):

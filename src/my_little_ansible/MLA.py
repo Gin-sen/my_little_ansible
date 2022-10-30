@@ -71,15 +71,16 @@ class MLA:
                 case ["pkey"]:
                     if os.path.isfile(host.pkey_path):
                         ssh_clients.append(MLAClient(host.ip, host.port,
-                                                     "mla_agent", "mla_password", host.pkey_path))
+                                                     "mla_agent", "mla_password", host.pkey_path, hostname=host.name))
                     else:
                         raise FileNotFoundError(host.pkey_path)
                 case ["login"]:
                     ssh_clients.append(MLAClient(host.ip, host.port,
-                                                 host.username, host.password))
+                                                 host.username, host.password, hostname=host.name))
                 case _:
                     ssh_clients.append(MLAClient(host.ip, host.port,
-                                                 "mla_agent", "mla_password", "/home/vagrant/.ssh/mla_key"))
+                                                 "mla_agent", "mla_password", "/home/vagrant/.ssh/mla_key",
+                                                 hostname=host.name))
         return ssh_clients
 
     def dry_run(self):
@@ -92,9 +93,6 @@ class MLA:
 
     def run(self):
         for (host, client) in zip(self.hosts, self.ssh_clients):
-            logger.debug(client)
-            logger.debug(host)
             for (todo, task) in zip(self.todos, self.modules):
-                logger.debug(task)
-                logger.debug(todo)
+                logger.info(f"Running {todo} on {host}")
                 task.process(client, host.ssh_mode)

@@ -12,6 +12,11 @@ logger = logging.getLogger(__name__)
 class ServiceModule(BaseModule):
     name: str = 'service'
 
+    def __init__(self, params: dict):
+        super().__init__(params)
+        self.name = params['name']
+        self.state = params['state']
+
     def process(self, ssh_client: MLAClient, ssh_mode: str):
         """
         Apply the action to `ssh_client` using `params`.
@@ -22,6 +27,13 @@ class ServiceModule(BaseModule):
         """
         ssh_client.connect(hostname=ssh_client.ip, port=ssh_client.port, username=ssh_client.username,
                            pkey=ssh_client.pkey)
-        logger.info("connected")
+        logger.info(f"Connected to {ssh_client.username}@{ssh_client.hostname}")
+
+        commands = []
+        commands.append("sudo -S apt-get update")
+        commands.append(f"sudo -S apt-get install -{self.name}")
+
+
+        super(ServiceModule, self).exec(ssh_client, commands)
         ssh_client.close()
         pass

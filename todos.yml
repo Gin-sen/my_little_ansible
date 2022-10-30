@@ -1,33 +1,51 @@
 #Installer le paquet apt nginx-common
+#
+#- module: apt
+#  params:
+#    name: nginx-common
+#    state: absent
 
-- module: apt
-  params:
-    name: nginx-common
-    state: present
+# Command - create a dummy file
+#- module: command
+#  params:
+#    command: |
+#      stat /home/vagrant/
+#      # rm -rf /var/www/public
+#      ls /var/www/
+#      stat /var/www/
 
 #Copier le dossier ./public sur les hôtes distants
 
-- module: copy
-  params:
-    src: ./public
-    dest: /var/www/public
-    backup: true
+#- module: copy
+#  params:
+#    src: ./new_public
+#    dest: /var/www/new_public/
+#    backup: true
 
-#Templatiser la définition d'un server nginx (vhost)
+# Command - create a dummy file
+#- module: command
+#  params:
+#    command: |
+#      ls /var/www/new_public
+#      cat /var/www/new_public/index.html
+#      ls /var/www/new_public/other
+#      cat /var/www/new_public/other/index.html
 
+##Templatiser la définition d'un server nginx (vhost)
+#
 - module: template
   params:
     src: default.conf.j2
     dest: /etc/nginx/sites-enabled/default
 
-#Démarrer le service nginx et configurer le service pour qu'il se lance au boot
-
-- module: service
-  params:
-    name: nginx
-    state: started
-
-- module: service
-  params:
-    name: nginx
-    state: enabled
+##Démarrer le service nginx et configurer le service pour qu'il se lance au boot
+#
+#- module: service
+#  params:
+#    name: nginx
+#    state: started
+#
+#- module: service
+#  params:
+#    name: nginx
+#    state: enabled

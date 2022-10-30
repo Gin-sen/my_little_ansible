@@ -2,27 +2,34 @@
 #
 #
 #
+SHELL := /bin/bash
+.ONESHELL:
+
 EXEC	=	venv/bin/mla
 SRC	=	$(wildcard *.py)
 OBJ	=	$(SRC:.py=.pyc)
 
 
 
-venv/bin/mla:	requirements.txt
-	./venv/bin/pip3.10 install -r requirements.txt
-	./venv/bin/python3.10 -m pip install .
+venv: venv/touchfile
 
-venv/bin/activate:	requirements.txt
+venv/touchfile:
 	python3.10 -m venv venv
-	./venv/bin/pip3.10 install -r requirements.txt
-	echo "!!!!!! USE \"source ./venv/bin/activate\" !!!!!!"
+	@touch venv/touchfile
+	@source ./venv/bin/activate
 
-run:	venv/bin/activate venv/bin/mla
+install:	requirements.txt
+	./venv/bin/pip3.10 install -r requirements.txt
+
+
+build:
 	./venv/bin/pip3.10 install .
+
+run:	venv/touchfile install build
 	./venv/bin/mla
 
 clean:
-	@rm -rf .pytest_cache/ .cache/ build/ dist/ ./venv/bin/mla
+	@rm -rf .pytest_cache/ .cache/ build/ dist/ ./__pycache__
 
 fclean:	clean
 	@rm -rf ./venv/bin/mla

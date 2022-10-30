@@ -1,15 +1,28 @@
-import logging
+import re
+import socket
 
+import logging
+import time
+
+import select
+from paramiko.py3compat import StringIO
 
 from .base_module import BaseModule
 from ..ssh_helper.MLAClient import MLAClient
 
+
 logger = logging.getLogger(__name__)
+
+
+def verif(stdout, stderr):
+    """function debug"""
+    logger.error(stdout.read().decode().strip())
+    logger.error(stderr.read().decode().strip())
 
 
 class AptModule(BaseModule):
     name: str = 'package-name'
-    state: str = 'undefined'
+    state: str = 'present'
 
     def __init__(self, params: dict):
         super().__init__(params)
@@ -26,6 +39,17 @@ class AptModule(BaseModule):
         """
         ssh_client.connect(hostname=ssh_client.ip, port=ssh_client.port, username=ssh_client.username,
                            pkey=ssh_client.pkey)
-        logger.info("connected")
+        logger.info(f"Connected to {ssh_client.username}@{ssh_client.hostname}")
+
+        commands = []
+        commands.append("sudo -S apt-get update")
+        if self.state == "absent":
+            commands.append(f"sudo -S apt-get purge -y {self.name}")
+        else:
+            commands.append(f"sudo -S apt-get install -y {self.name}")
+
+        super(AptModule, self).exec(ssh_client, commands)
+
         ssh_client.close()
         pass
+
