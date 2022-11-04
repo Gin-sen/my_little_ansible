@@ -1,21 +1,22 @@
+"""mla.py"""
 import logging
 import os
-
-from .exec_modules.apt_module import AptModule
-from .exec_modules.base_module import BaseModule
-from .exec_modules.command_module import CommandModule
-from .exec_modules.copy_module import CopyModule
-from .exec_modules.service_module import ServiceModule
-from .exec_modules.sysctl_module import SysctlModule
-from .exec_modules.template_module import TemplateModule
+from .mod.apt_module import AptModule
+from .mod.base_module import BaseModule
+from .mod.command_module import CommandModule
+from .mod.copy_module import CopyModule
+from .mod.interactive_module import InteractiveModule
+from .mod.service_module import ServiceModule
+from .mod.sysctl_module import SysctlModule
+from .mod.template_module import TemplateModule
 from .models import Host, Todo
-from .ssh_helper.MLAClient import MLAClient
+from .ssh_helper.mla_client import MlaClient
 
 logger = logging.getLogger(__name__)
 
 
-class MLA:
-
+class Mla:
+    """Mla class"""
     def __init__(self, hosts: [Host], todos: [Todo]):
         """
 
@@ -26,24 +27,28 @@ class MLA:
         self.todos = todos
         self.modules = self.get_modules()
         self.ssh_clients = self.get_ssh_clients()
-        # Init logging but in class logger
-        # logger.info("Processing %i tasks on hosts: %s" % (len(self.todos), "%s" % ", ".join(self.get_hosts_ip())))
 
     def __repr__(self):
-        return "%s(hosts=%r, todos=%r, ssh_clients=%r, modules=%r)" % (self.__class__.__name__, self.hosts, self.todos,
-                                                                       self.ssh_clients, self.modules)
+        return f"(hosts={self.__class__.__name__}," \
+               f" todos={self.hosts}," \
+               f" ssh_clients={self.ssh_clients}," \
+               f" modules={self.modules}) "
 
     def get_hosts_ip(self) -> [str]:
         """
         Returns Hosts IP Address
         :return:
         """
-        ip = []
+        ip_address = []
         for host in self.hosts:
-            ip.append(host.ip)
-        return ip
+            ip_address.append(host.ip_address)
+        return ip_address
 
     def get_modules(self):
+        """
+        Returns Modules
+        :return:
+        """
         modules = []
         for todo in self.todos:
             match todo.name:
@@ -59,40 +64,54 @@ class MLA:
                     modules.append(SysctlModule(todo.params))
                 case "template":
                     modules.append(TemplateModule(todo.params))
+                case "interactive":
+                    modules.append(InteractiveModule(todo.params))
                 case _:
                     logger.warning("BaseModule used : Unclear behavior expected !")
                     modules.append(BaseModule(todo.params))
         return modules
 
     def get_ssh_clients(self):
+        """
+        Returns ssh_client
+        :return:
+        """
         ssh_clients = []
         for host in self.hosts:
             match host.ssh_mode:
                 case ["pkey"]:
                     if os.path.isfile(host.pkey_path):
-                        ssh_clients.append(MLAClient(host.ip, host.port,
-                                                     "mla_agent", "mla_password", host.pkey_path, hostname=host.name))
+                        ssh_clients.append(MlaClient(host.ip_address,
+                                                     host.port,
+                                                     "mla_agent",
+                                                     "mla_password",
+                                                     host.pkey_path, hostname=host.name))
                     else:
                         raise FileNotFoundError(host.pkey_path)
                 case ["login"]:
-                    ssh_clients.append(MLAClient(host.ip, host.port,
+                    ssh_clients.append(MlaClient(host.ip_address, host.port,
                                                  host.username, host.password, hostname=host.name))
                 case _:
-                    ssh_clients.append(MLAClient(host.ip, host.port,
-                                                 "mla_agent", "mla_password", "/home/vagrant/.ssh/mla_key",
+                    ssh_clients.append(MlaClient(host.ip_address, host.port,
+                                                 "mla_agent", "mla_password",
+                                                 "/home/vagrant/.ssh/mla_key",
                                                  hostname=host.name))
         return ssh_clients
 
     def dry_run(self):
+        """
+        logger
+        """
         for (host, client) in zip(self.hosts, self.ssh_clients):
-            logger.debug(client)
-            logger.debug(host)
             for (todo, task) in zip(self.todos, self.modules):
-                logger.debug(task)
-                logger.debug(todo)
+                logger.info(f"Should run Task {task.__class__.__name__} on {host}")
 
     def run(self):
+        """
+        runner
+        """
         for (host, client) in zip(self.hosts, self.ssh_clients):
             for (todo, task) in zip(self.todos, self.modules):
-                logger.info(f"Running {todo} on {host}")
+                logger.info(f"Running Task {task.__class__.__name__} on {host}")
                 task.process(client, host.ssh_mode)
+                logger.info(f"Task {task.__class__.__name__} on {host} completed ✅ ")

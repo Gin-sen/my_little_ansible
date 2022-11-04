@@ -4,7 +4,7 @@ server {
     server_name  {{ server_name | default('localhost') }};
 
     location / {
-        root   /usr/share/nginx/html;
+        root   {{ root | default('/usr/share/nginx/html') }};
         index  index.html index.htm;
     }
 }

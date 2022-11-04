@@ -1,11 +1,11 @@
-
+"""__init__.py"""
 import logging
 import os
 
 import yaml
 
-from .Host import Host
-from .Todo import Todo
+from .host import Host
+from .todo import Todo
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,9 @@ def parse_inventory(inventory_file):
             with open(inventory_file, "r") as file:
                 data = yaml.load(file, Loader=yaml.FullLoader)
                 for host in list(data['hosts'].keys()):
-                    hosts.append(Host(host, data['hosts'][host]['ssh_address'], data['hosts'][host]['ssh_port']))
+                    hosts.append(Host(host,
+                                      data['hosts'][host]['ssh_address'],
+                                      data['hosts'][host]['ssh_port']))
                 file.close()
         else:
             logger.error("Inventory file does not exist")

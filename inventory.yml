@@ -3,7 +3,7 @@ hosts:
 #        ssh_address: 192.168.56.101
         ssh_address: 10.0.100.101
         ssh_port: 22
-#    server-2:
-##        ssh_address: 192.168.56.102
-#        ssh_address: 10.0.100.102
-#        ssh_port: 22
+    server-2:
+#        ssh_address: 192.168.56.102
+        ssh_address: 10.0.100.102
+        ssh_port: 22

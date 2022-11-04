@@ -1,51 +1,110 @@
 #Installer le paquet apt nginx-common
 #
-#- module: apt
-#  params:
-#    name: nginx-common
-#    state: absent
+- module: apt
+  params:
+    name: nginx
+    state: absent
+#
+#
+- module: apt
+  params:
+    name: nginx
+    state: present
 
-# Command - create a dummy file
-#- module: command
-#  params:
-#    command: |
-#      stat /home/vagrant/
-#      # rm -rf /var/www/public
-#      ls /var/www/
-#      stat /var/www/
 
 #Copier le dossier ./public sur les hôtes distants
+#
+- module: copy
+  params:
+    src: ./public
+    dest: /home/mla_agent/hello
+    backup: true
 
-#- module: copy
-#  params:
-#    src: ./new_public
-#    dest: /var/www/new_public/
-#    backup: true
+- module: command
+  params:
+    command: |
+      ls -al /home/mla_agent/hello
+      rm -rf /home/mla_agent/hello
 
-# Command - create a dummy file
+- module: command
+  params:
+    command: |
+      ls -al /var/www/public
+      rm -rf /var/www/public
+
+- module: copy
+  params:
+    src: ./new_public
+    dest: /var/www/public
+    backup: true
+
+- module: copy
+  params:
+    src: ./public
+    dest: /var/www/public
+    backup: true
+
+## Command - create a dummy file
 #- module: command
 #  params:
 #    command: |
-#      ls /var/www/new_public
-#      cat /var/www/new_public/index.html
-#      ls /var/www/new_public/other
-#      cat /var/www/new_public/other/index.html
+#      ls -al /var/www/public
+#      rm -rf /var/www/public
+
 
 ##Templatiser la définition d'un server nginx (vhost)
 #
 - module: template
   params:
-    src: default.conf.j2
+    src: ./templates/default.conf.j2
     dest: /etc/nginx/sites-enabled/default
+    vars:
+      listen_port: 8123
+      server_name: "_"
+      root: /var/www/public
+
+
+- module: command
+  params:
+    command: |
+      sudo -S ls -al /etc/nginx/sites-enabled/
+
+
+- module: command
+  params:
+    command: |
+      sudo -S cat /etc/nginx/sites-enabled/default
+# Command - create a dummy file
 
 ##Démarrer le service nginx et configurer le service pour qu'il se lance au boot
 #
-#- module: service
+- module: service
+  params:
+    name: nginx
+    state: restarted
+###
+- module: service
+  params:
+    name: nginx
+    state: enabled
+
+- module: sysctl
+  params:
+    attribute: "net.core.somaxconn"
+    value: 12
+    permanent: true
+
+- module: command
+  params:
+    command: |
+      cat /etc/sysctl.conf
+
+
+- module: apt
+  params:
+    name: curl
+    state: present
+
+#- module: interactive
 #  params:
-#    name: nginx
-#    state: started
-#
-#- module: service
-#  params:
-#    name: nginx
-#    state: enabled
+#    shell: bash
